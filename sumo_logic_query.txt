@@ -1,0 +1,6 @@
+_sourceCategory="web/application/logs"
+| parse "endpoint=* response_time=*ms" as endpoint, response_time
+| where endpoint = "/api/data"
+| where response_time > 3000
+| count as slow_requests
+| where slow_requests > 5
