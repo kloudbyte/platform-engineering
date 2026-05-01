@@ -18,7 +18,7 @@ output "lambda_function_name" {
   value       = aws_lambda_function.auto_remediation.function_name
 }
 
-output "lambda_function_arn" {
-  description = "ARN of the Lambda function"
-  value       = aws_lambda_function.auto_remediation.arn
+output "lambda_function_url" {
+  description = "Use this URL in the Sumo Logic webhook connection"
+  value       = aws_lambda_function_url.auto_remediation_url.function_url
 }
