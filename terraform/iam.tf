@@ -35,10 +35,18 @@ resource "aws_iam_role_policy" "lambda_ec2_policy" {
         Effect = "Allow"
         Action = [
           "ec2:StopInstances",
-          "ec2:StartInstances",
-          "ec2:DescribeInstances"
+          "ec2:StartInstances"
         ]
         Resource = aws_instance.web_server.arn
+      },
+      {
+        # Describe actions don't support resource-level restrictions
+        Effect = "Allow"
+        Action = [
+          "ec2:DescribeInstances",
+          "ec2:DescribeInstanceStatus"
+        ]
+        Resource = "*"
       }
     ]
   })
