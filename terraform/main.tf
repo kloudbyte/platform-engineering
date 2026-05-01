@@ -84,4 +84,8 @@ resource "aws_lambda_function" "auto_remediation" {
     Name    = "${var.project_name}-lambda"
     Project = var.project_name
   }
+  resource "aws_lambda_function_url" "auto_remediation_url" {
+  function_name      = aws_lambda_function.auto_remediation.function_name
+  authorization_type = "NONE"
+}
 }
