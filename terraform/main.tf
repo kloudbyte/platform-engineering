@@ -15,8 +15,22 @@ provider "aws" {
 # ─────────────────────────────────────────
 # EC2 Instance
 # ─────────────────────────────────────────
+# Fetch latest Amazon Linux 2 AMI automatically
+data "aws_ami" "amazon_linux_2" {
+  most_recent = true
+  owners      = ["amazon"]
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+  filter {
+    name   = "state"
+    values = ["available"]
+  }
+}
+
 resource "aws_instance" "web_server" {
-  ami           = var.ami_id
+  ami           = data.aws_ami.amazon_linux_2.id
   instance_type = var.instance_type
 
   user_data = <<-EOF
@@ -59,7 +73,7 @@ resource "aws_sns_topic_subscription" "email_alert" {
 # Package the Lambda function code into a ZIP
 data "archive_file" "lambda_zip" {
   type        = "zip"
-  source_file = "${path.module}/../lambda_function/lambda_function.py"
+  source_file = "${path.module}/../lambda_functions/lambda_function.py"
   output_path = "${path.module}/lambda_function.zip"
 }
 
@@ -84,8 +98,24 @@ resource "aws_lambda_function" "auto_remediation" {
     Name    = "${var.project_name}-lambda"
     Project = var.project_name
   }
+}
   resource "aws_lambda_function_url" "auto_remediation_url" {
   function_name      = aws_lambda_function.auto_remediation.function_name
   authorization_type = "NONE"
+
+  cors {
+    allow_credentials = false
+    allow_origins     = ["*"]
+    allow_methods     = ["POST"]
+    allow_headers     = ["Content-Type"]
+    max_age           = 86400
+  }
 }
+
+resource "aws_lambda_permission" "allow_public_function_url" {
+  statement_id           = "AllowPublicFunctionURL"
+  action                 = "lambda:InvokeFunctionUrl"
+  function_name          = aws_lambda_function.auto_remediation.function_name
+  principal              = "*"
+  function_url_auth_type = "NONE"
 }
